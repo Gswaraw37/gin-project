@@ -1,14 +1,23 @@
 package uploadcontroller
 
 import (
+	"fmt"
+	appconfig "gin-project/config/app_config"
 	"gin-project/utilities"
 	"net/http"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func HandleUploadFile(ctx *gin.Context) {
+	claimsData := ctx.MustGet("claimsData").(jwt.MapClaims)
+	fmt.Println("claimsData => email => ", claimsData["email"])
+
+	userId := ctx.MustGet("user_id").(float64)
+	fmt.Println("userId => ", userId)
+
 	fileHeader, _ := ctx.FormFile("file")
 	if fileHeader == nil {
 		ctx.AbortWithStatusJSON(400, gin.H{
@@ -52,13 +61,19 @@ func HandleUploadFile(ctx *gin.Context) {
 
 	ctx.JSON(200, gin.H{
 		"message": "Success Upload File",
+		"data":    filename,
 	})
 }
 
 func HandleRemoveFile(ctx *gin.Context) {
 	filename := ctx.Param("filename")
+	if filename == "" {
+		ctx.JSON(400, gin.H{
+			"message": "File name is required",
+		})
+	}
 
-	err := utilities.RemoveFile(filename)
+	err := utilities.RemoveFile(appconfig.DIR_FILE + filename)
 	if err != nil {
 		ctx.JSON(500, gin.H{
 			"message": err.Error(),

@@ -3,6 +3,8 @@ package bootstrap
 import (
 	"gin-project/config"
 	appconfig "gin-project/config/app_config"
+	corsconfig "gin-project/config/cors_config"
+	logconfig "gin-project/config/log_config"
 	"gin-project/database"
 	"gin-project/routes"
 	"log"
@@ -23,8 +25,15 @@ func BootstrapApp() {
 
 	// DATABASE CONNECTION
 	database.ConnectDatabase()
+	// LOGGING
+	logconfig.DefaultLogging()
 	// INIT GIN ENGINE
 	app := gin.Default()
+
+	// CORS PACKAGE
+	app.Use(corsconfig.CorsConfigContrib())
+	// CORS MANUAL
+	// app.Use(corsconfig.CorsConfig)
 
 	// INIT ROUTE
 	routes.InitRoute(app)
