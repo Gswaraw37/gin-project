@@ -6,6 +6,7 @@ import (
 	"gin-project/requests"
 	"gin-project/responses"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,16 +18,9 @@ func Index(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(500, gin.H{
 			"message": "Data Tidak Ditemukan",
 		})
+
+		return
 	}
-
-	// isValidated := true
-
-	// if !isValidated {
-	// 	ctx.AbortWithStatusJSON(401, gin.H{
-	// 		"message": "Bad Request",
-	// 	})
-	// 	return
-	// }
 
 	ctx.JSON(200, gin.H{
 		"data": users,
@@ -206,5 +200,40 @@ func Delete(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{
 		"message": "Data Deleted",
 		"data":    user,
+	})
+}
+
+func IndexPaginate(ctx *gin.Context) {
+	page := ctx.Query("page")
+	if page == "" {
+		page = "1"
+	}
+
+	perPage := ctx.Query("perPage")
+	if perPage == "" {
+		perPage = "10"
+	}
+
+	perPageInt, _ := strconv.Atoi(perPage)
+	pageInt, _ := strconv.Atoi(page)
+	if pageInt < 1 {
+		pageInt = 1
+	}
+
+	users := new([]models.User)
+
+	err := database.DB.Table("users").Offset((pageInt - 1) * perPageInt).Limit(perPageInt).Find(&users).Error
+	if err != nil {
+		ctx.AbortWithStatusJSON(500, gin.H{
+			"message": "Data Tidak Ditemukan",
+		})
+
+		return
+	}
+
+	ctx.JSON(200, gin.H{
+		"data":    users,
+		"page":    pageInt,
+		"perPage": perPageInt,
 	})
 }
