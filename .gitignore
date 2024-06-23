@@ -3,6 +3,8 @@
 .pnp.js
 config/
 logs/
+public/files
+public/images
 
 /coverage
 
